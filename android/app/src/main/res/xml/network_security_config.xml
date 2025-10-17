@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- Allow cleartext traffic for all domains (for MQTT broker) -->
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    
+    <!-- Specifically allow HiveMQ broker -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">broker.hivemq.com</domain>
+    </domain-config>
+</network-security-config>
