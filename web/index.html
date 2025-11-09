@@ -18,21 +18,95 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Smart Aquarium Control - Monitor temperature and turbidity with dynamic theme">
+  
+  <!-- Responsive & PWA Meta Tags -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="aquariumsmart">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Aquarium Smart">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Theme Color (will change dynamically) -->
+  <meta name="theme-color" content="#2196F3">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>aquariumsmart</title>
+  <title>Aquarium Smart Control</title>
   <link rel="manifest" href="manifest.json">
+  
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Roboto', sans-serif;
+    }
+    
+    /* Loading Screen */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+    
+    .loading-logo {
+      font-size: 48px;
+      margin-bottom: 20px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    .loading-text {
+      color: white;
+      font-size: 18px;
+      margin-top: 10px;
+      animation: fadeInOut 1.5s ease-in-out infinite;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+    
+    @keyframes fadeInOut {
+      0%, 100% { opacity: 0.5; }
+      50% { opacity: 1; }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        overflow-y: auto;
+      }
+    }
+  </style>
 </head>
 <body>
+  <div class="loading">
+    <div class="loading-logo">🐠</div>
+    <div class="spinner"></div>
+    <div class="loading-text">Loading Aquarium Dashboard...</div>
+  </div>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
