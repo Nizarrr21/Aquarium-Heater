@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:io';
-import 'dart:math';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 
@@ -26,7 +24,7 @@ class MqttService {
   
   // Stream controllers untuk data sensor
   final _temperatureController = StreamController<double>.broadcast();
-  final _turbidityController = StreamController<double>.broadcast();
+  final _turbidityStatusController = StreamController<String>.broadcast();
   final _statusController = StreamController<String>.broadcast();
   final _connectionController = StreamController<bool>.broadcast();
   final _calibrationResponseController = StreamController<String>.broadcast();
@@ -34,7 +32,7 @@ class MqttService {
 
   // Getters untuk streams
   Stream<double> get temperatureStream => _temperatureController.stream;
-  Stream<double> get turbidityStream => _turbidityController.stream;
+  Stream<String> get turbidityStatusStream => _turbidityStatusController.stream;
   Stream<String> get statusStream => _statusController.stream;
   Stream<bool> get connectionStream => _connectionController.stream;
   Stream<String> get calibrationResponseStream => _calibrationResponseController.stream;
@@ -42,12 +40,12 @@ class MqttService {
 
   // Data terakhir
   double _lastTemperature = 0.0;
-  double _lastTurbidity = 0.0;
+  String _lastTurbidityStatus = 'UNKNOWN';
   String _lastStatus = 'OFF';
   bool _isConnected = false;
 
   double get lastTemperature => _lastTemperature;
-  double get lastTurbidity => _lastTurbidity;
+  String get lastTurbidityStatus => _lastTurbidityStatus;
   String get lastStatus => _lastStatus;
   bool get isConnected => _isConnected;
 
@@ -221,9 +219,8 @@ class MqttService {
           break;
 
         case topicTurbidity:
-          final turbidity = double.tryParse(payload) ?? 0.0;
-          _lastTurbidity = turbidity;
-          _turbidityController.add(turbidity);
+          _lastTurbidityStatus = payload;
+          _turbidityStatusController.add(payload);
           break;
 
         case topicStatus:
@@ -308,7 +305,7 @@ class MqttService {
     _log('🗑️ Disposing MQTT service...');
     _reconnectTimer?.cancel();
     _temperatureController.close();
-    _turbidityController.close();
+    _turbidityStatusController.close();
     _statusController.close();
     _connectionController.close();
     _calibrationResponseController.close();

@@ -185,22 +185,21 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                         mainAxisSpacing: 16,
                         childAspectRatio: 1.4,
                         children: [
-                          _buildQuickStatCard(
-                            title: 'Suhu Air',
-                            icon: FontAwesomeIcons.temperatureHigh,
-                            color: Colors.orange,
-                            stream: _mqttService.temperatureStream,
-                            initialValue: _mqttService.lastTemperature,
-                            unit: '°C',
-                          ),
-                          _buildQuickStatCard(
-                            title: 'Kekeruhan',
-                            icon: FontAwesomeIcons.droplet,
-                            color: Colors.blue,
-                            stream: _mqttService.turbidityStream,
-                            initialValue: _mqttService.lastTurbidity,
-                            unit: 'NTU',
-                          ),
+                        _buildQuickStatCard(
+                          title: 'Suhu Air',
+                          icon: FontAwesomeIcons.temperatureHigh,
+                          color: Colors.orange,
+                          doubleStream: _mqttService.temperatureStream,
+                          initialValue: _mqttService.lastTemperature,
+                          unit: '°C',
+                        ),
+                        _buildQuickStatCard(
+                          title: 'Kekeruhan Air',
+                          icon: FontAwesomeIcons.droplet,
+                          color: Colors.blue,
+                          stringStream: _mqttService.turbidityStatusStream,
+                          initialValue: _mqttService.lastTurbidityStatus,
+                        ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -225,9 +224,10 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     required String title,
     required IconData icon,
     required Color color,
-    required Stream<double> stream,
-    required double initialValue,
-    required String unit,
+    Stream<double>? doubleStream,
+    Stream<String>? stringStream,
+    dynamic initialValue,
+    String? unit,
   }) {
     return Card(
       elevation: 0,
@@ -272,39 +272,72 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                   ),
                 ),
                 const SizedBox(height: 2),
-                StreamBuilder<double>(
-                  stream: stream,
-                  initialData: initialValue,
-                  builder: (context, snapshot) {
-                    final value = snapshot.data ?? 0.0;
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            value.toStringAsFixed(1),
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: color,
+                if (doubleStream != null)
+                  StreamBuilder<double>(
+                    stream: doubleStream,
+                    initialData: initialValue as double? ?? 0.0,
+                    builder: (context, snapshot) {
+                      final value = snapshot.data ?? 0.0;
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              value.toStringAsFixed(1),
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: color,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          unit,
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: color.withOpacity(0.7),
+                          const SizedBox(width: 4),
+                          Text(
+                            unit ?? '',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: color.withOpacity(0.7),
+                            ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
+                        ],
+                      );
+                    },
+                  )
+                else if (stringStream != null)
+                  StreamBuilder<String>(
+                    stream: stringStream,
+                    initialData: initialValue as String? ?? 'UNKNOWN',
+                    builder: (context, snapshot) {
+                      final value = snapshot.data ?? 'UNKNOWN';
+                      final isJernih = value.toUpperCase() == 'JERNIH';
+                      return Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isJernih ? Colors.green.withOpacity(0.2) : Colors.orange.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: isJernih ? Colors.green : Colors.orange,
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Text(
+                              isJernih ? 'JERNIH ✓' : 'KERUH ✗',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: isJernih ? Colors.green : Colors.orange,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
               ],
             ),
           ],

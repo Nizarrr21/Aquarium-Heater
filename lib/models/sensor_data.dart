@@ -1,18 +1,58 @@
+// Enum untuk status turbidity digital
+enum TurbidityStatus {
+  jernih,  // Air JERNIH (sensor HIGH)
+  keruh,   // Air KERUH (sensor LOW)
+  unknown; // Status belum diketahui
+  
+  String get displayName {
+    switch (this) {
+      case TurbidityStatus.jernih:
+        return 'JERNIH ✓';
+      case TurbidityStatus.keruh:
+        return 'KERUH ✗';
+      case TurbidityStatus.unknown:
+        return 'UNKNOWN';
+    }
+  }
+  
+  String get shortName {
+    switch (this) {
+      case TurbidityStatus.jernih:
+        return 'JERNIH';
+      case TurbidityStatus.keruh:
+        return 'KERUH';
+      case TurbidityStatus.unknown:
+        return 'UNKNOWN';
+    }
+  }
+  
+  static TurbidityStatus fromString(String value) {
+    switch (value.toUpperCase()) {
+      case 'JERNIH':
+        return TurbidityStatus.jernih;
+      case 'KERUH':
+        return TurbidityStatus.keruh;
+      default:
+        return TurbidityStatus.unknown;
+    }
+  }
+}
+
 class SensorData {
   final double temperature;
-  final double turbidity;
+  final TurbidityStatus turbidityStatus;
   final DateTime timestamp;
 
   SensorData({
     required this.temperature,
-    required this.turbidity,
+    required this.turbidityStatus,
     required this.timestamp,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'temperature': temperature,
-      'turbidity': turbidity,
+      'turbidityStatus': turbidityStatus.shortName,
       'timestamp': timestamp.toIso8601String(),
     };
   }
@@ -20,7 +60,7 @@ class SensorData {
   factory SensorData.fromJson(Map<String, dynamic> json) {
     return SensorData(
       temperature: json['temperature'] as double,
-      turbidity: json['turbidity'] as double,
+      turbidityStatus: TurbidityStatus.fromString(json['turbidityStatus'] as String),
       timestamp: DateTime.parse(json['timestamp'] as String),
     );
   }

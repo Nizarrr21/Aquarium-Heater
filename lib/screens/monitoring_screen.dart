@@ -13,7 +13,6 @@ class MonitoringScreen extends StatefulWidget {
 class _MonitoringScreenState extends State<MonitoringScreen> {
   final MqttService _mqttService = MqttService();
   final List<FlSpot> _temperatureData = [];
-  final List<FlSpot> _turbidityData = [];
   int _dataIndex = 0;
 
   @override
@@ -28,15 +27,6 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
         _temperatureData.add(FlSpot(_dataIndex.toDouble(), temp));
         if (_temperatureData.length > 50) {
           _temperatureData.removeAt(0);
-        }
-      });
-    });
-
-    _mqttService.turbidityStream.listen((turbidity) {
-      setState(() {
-        _turbidityData.add(FlSpot(_dataIndex.toDouble(), turbidity));
-        if (_turbidityData.length > 50) {
-          _turbidityData.removeAt(0);
         }
         _dataIndex++;
       });
@@ -77,15 +67,7 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
               unit: '°C',
             ),
             const SizedBox(height: 16),
-            _buildChartCard(
-              title: 'Grafik Kekeruhan Air',
-              icon: FontAwesomeIcons.droplet,
-              color: Colors.blue,
-              chartData: _turbidityData,
-              minY: 0,
-              maxY: 3000,
-              unit: 'NTU',
-            ),
+            _buildTurbidityStatusCard(),
             const SizedBox(height: 16),
             _buildStatisticsCard(),
           ],
@@ -241,6 +223,98 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                         ),
                       ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTurbidityStatusCard() {
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Colors.blue.withOpacity(0.1), Colors.blue.withOpacity(0.05)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.blue.withOpacity(0.1), width: 1),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const FaIcon(FontAwesomeIcons.droplet, color: Colors.white, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'Status Kekeruhan Air',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            StreamBuilder<String>(
+              stream: _mqttService.turbidityStatusStream,
+              initialData: _mqttService.lastTurbidityStatus,
+              builder: (context, snapshot) {
+                final status = snapshot.data ?? 'UNKNOWN';
+                final isJernih = status.toUpperCase() == 'JERNIH';
+                
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isJernih ? Colors.green.withOpacity(0.1) : Colors.orange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isJernih ? Colors.green : Colors.orange,
+                      width: 2,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        isJernih ? 'AIR JERNIH ✓' : 'AIR KERUH ✗',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isJernih ? Colors.green : Colors.orange,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        isJernih 
+                          ? 'Air dalam kondisi baik dan jernih' 
+                          : 'Air dalam kondisi keruh, perlu pembersihan',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
           ],
         ),
