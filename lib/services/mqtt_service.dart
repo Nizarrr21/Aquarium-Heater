@@ -78,8 +78,8 @@ class MqttService {
       }
 
       _client = MqttServerClient.withPort(broker, clientId, port);
-      _client!.logging(on: true);  // Enable logging untuk debugging
-      _client!.keepAlivePeriod = 30;  // Reduced keep alive period
+      _client!.logging(on: false);  // Disable logging untuk production
+      _client!.keepAlivePeriod = 60;  // Increase keep alive period
       _client!.autoReconnect = true;  // Enable auto reconnect
       _client!.resubscribeOnAutoReconnect = true;  // Resubscribe on reconnect
       _client!.onDisconnected = _onDisconnected;
@@ -90,13 +90,15 @@ class MqttService {
       _client!.pongCallback = _pong;
       
       // Set connection timeout
-      _client!.connectTimeoutPeriod = 5000;  // 5 seconds timeout
+      _client!.connectTimeoutPeriod = 10000;  // 10 seconds timeout
 
       final connMessage = MqttConnectMessage()
           .withClientIdentifier(clientId)
           .startClean()  // Clean session
-          .keepAliveFor(30)  // Keep alive 30 seconds
-          .withWillQos(MqttQos.atMostOnce);
+          .keepAliveFor(60)  // Keep alive 60 seconds
+          .withWillTopic('heater/status')
+          .withWillMessage('offline')
+          .withWillQos(MqttQos.atLeastOnce);
       
       _client!.connectionMessage = connMessage;
 
