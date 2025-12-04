@@ -151,13 +151,13 @@ class _MonitoringScreenState extends State<MonitoringScreen> {
                               gradient: LinearGradient(
                                 colors: [color, color.withOpacity(0.5)],
                               ),
-                              barWidth: 3,
+                              barWidth: 4,
                               isStrokeCapRound: true,
                               dotData: FlDotData(
                                 show: true,
                                 getDotPainter: (spot, percent, barData, index) {
                                   return FlDotCirclePainter(
-                                    radius: 3,
+                                    radius: 4,
                                     color: Colors.white,
                                     strokeWidth: 2,
                                     strokeColor: color,
