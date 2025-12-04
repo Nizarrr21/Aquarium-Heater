@@ -20,7 +20,10 @@ class MqttService {
 
   MqttServerClient? _client;
   Timer? _reconnectTimer;
+  Timer? _connectionCheckTimer;
   bool _isReconnecting = false;
+  int _reconnectAttempts = 0;
+  static const int _maxReconnectAttempts = 5;
   
   // Stream controllers untuk data sensor
   final _temperatureController = StreamController<double>.broadcast();
@@ -79,7 +82,7 @@ class MqttService {
 
       _client = MqttServerClient.withPort(broker, clientId, port);
       _client!.logging(on: false);  // Disable logging untuk production
-      _client!.keepAlivePeriod = 60;  // Increase keep alive period
+      _client!.keepAlivePeriod = 20;  // Keep alive period untuk Android
       _client!.autoReconnect = true;  // Enable auto reconnect
       _client!.resubscribeOnAutoReconnect = true;  // Resubscribe on reconnect
       _client!.onDisconnected = _onDisconnected;
@@ -89,13 +92,13 @@ class MqttService {
       _client!.onAutoReconnected = _onAutoReconnected;
       _client!.pongCallback = _pong;
       
-      // Set connection timeout
-      _client!.connectTimeoutPeriod = 10000;  // 10 seconds timeout
+      // Set connection timeout untuk mobile
+      _client!.connectTimeoutPeriod = 5000;  // 5 seconds timeout
 
       final connMessage = MqttConnectMessage()
           .withClientIdentifier(clientId)
           .startClean()  // Clean session
-          .keepAliveFor(60)  // Keep alive 60 seconds
+          .keepAliveFor(20)  // Keep alive 20 seconds untuk Android
           .withWillTopic('heater/status')
           .withWillMessage('offline')
           .withWillQos(MqttQos.atLeastOnce);
@@ -125,6 +128,11 @@ class MqttService {
 
         _isConnected = true;
         _connectionController.add(true);
+        _reconnectAttempts = 0; // Reset on successful connection
+        
+        // Start periodic connection check
+        _startConnectionCheck();
+        
         return true;
       } else {
         _log('❌ MQTT connection failed - Status: ${_client!.connectionStatus}');
@@ -156,14 +164,47 @@ class MqttService {
   void _scheduleReconnect() {
     if (_isReconnecting) return;
     
+    // Check if max attempts reached
+    if (_reconnectAttempts >= _maxReconnectAttempts) {
+      _log('⚠️ Max reconnect attempts reached. Resetting counter...');
+      _reconnectAttempts = 0;
+      // Wait longer before trying again
+      Future.delayed(const Duration(seconds: 10), () {
+        _scheduleReconnect();
+      });
+      return;
+    }
+    
     _isReconnecting = true;
-    _log('⏳ Scheduling reconnect in 5 seconds...');
+    _reconnectAttempts++;
+    _log('⏳ Scheduling reconnect (attempt $_reconnectAttempts/$_maxReconnectAttempts) in 3 seconds...');
     
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(const Duration(seconds: 5), () {
+    _reconnectTimer = Timer(const Duration(seconds: 3), () async {
       _isReconnecting = false;
       _log('🔄 Attempting to reconnect...');
-      connect();
+      try {
+        final success = await connect();
+        if (success) {
+          _reconnectAttempts = 0; // Reset counter on success
+        }
+      } catch (e) {
+        _log('❌ Reconnect failed: $e');
+      }
+    });
+  }
+  
+  void _startConnectionCheck() {
+    _connectionCheckTimer?.cancel();
+    _connectionCheckTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (_client == null || _client!.connectionStatus?.state != MqttConnectionState.connected) {
+        _log('⚠️ Connection check: Not connected. Attempting reconnect...');
+        if (!_isReconnecting) {
+          _scheduleReconnect();
+        }
+      } else {
+        _log('✅ Connection check: Connected');
+      }
     });
   }
 
@@ -298,6 +339,8 @@ class MqttService {
     _log('🔌 Manually disconnecting MQTT...');
     _reconnectTimer?.cancel();
     _reconnectTimer = null;
+    _connectionCheckTimer?.cancel();
+    _connectionCheckTimer = null;
     _client?.disconnect();
     _isConnected = false;
     _connectionController.add(false);
@@ -306,6 +349,7 @@ class MqttService {
   void dispose() {
     _log('🗑️ Disposing MQTT service...');
     _reconnectTimer?.cancel();
+    _connectionCheckTimer?.cancel();
     _temperatureController.close();
     _turbidityStatusController.close();
     _statusController.close();

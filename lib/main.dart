@@ -15,12 +15,48 @@ class MyApp extends StatefulWidget {
   State<MyApp> createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   final MqttService _mqttService = MqttService();
   
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+  
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    // Handle app lifecycle untuk stabilitas koneksi
+    switch (state) {
+      case AppLifecycleState.resumed:
+        // App kembali ke foreground, reconnect MQTT jika perlu
+        print('App resumed - Checking MQTT connection...');
+        if (!_mqttService.isConnected) {
+          _mqttService.connect();
+        }
+        break;
+      case AppLifecycleState.paused:
+        // App di background
+        print('App paused');
+        break;
+      case AppLifecycleState.inactive:
+        print('App inactive');
+        break;
+      case AppLifecycleState.detached:
+        print('App detached');
+        break;
+      case AppLifecycleState.hidden:
+        print('App hidden');
+        break;
+    }
   }
   
   // Dynamic theme colors based on temperature status
