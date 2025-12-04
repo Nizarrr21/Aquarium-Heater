@@ -87,9 +87,9 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                     color: Colors.white.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const FaIcon(FontAwesomeIcons.fishFins, size: 20),
+                  child: const FaIcon(FontAwesomeIcons.fishFins, size: 10),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 const Text('Dashboard Aquarium'),
               ],
             ),
@@ -266,7 +266,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 11,
+                    fontSize: 8,
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
@@ -286,7 +286,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                             child: Text(
                               value.toStringAsFixed(1),
                               style: TextStyle(
-                                fontSize: 24,
+                                fontSize: 15,
                                 fontWeight: FontWeight.bold,
                                 color: color,
                               ),
@@ -328,7 +328,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
                             child: Text(
                               isJernih ? 'JERNIH ✓' : 'KERUH ✗',
                               style: TextStyle(
-                                fontSize: 16,
+                                fontSize: 10,
                                 fontWeight: FontWeight.bold,
                                 color: isJernih ? Colors.green : Colors.orange,
                               ),

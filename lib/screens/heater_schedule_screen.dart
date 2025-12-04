@@ -103,7 +103,7 @@ class _HeaterScheduleScreenState extends State<HeaterScheduleScreen> {
                 const Expanded(
                   child: Text(
                     'Jadwal Heater Hari Ini',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -131,7 +131,7 @@ class _HeaterScheduleScreenState extends State<HeaterScheduleScreen> {
         Text(
           value,
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 15,
             fontWeight: FontWeight.bold,
             color: color,
           ),
@@ -209,7 +209,7 @@ class _HeaterScheduleScreenState extends State<HeaterScheduleScreen> {
             child: FaIcon(
               isOn ? FontAwesomeIcons.fire : FontAwesomeIcons.powerOff,
               color: Colors.white,
-              size: 20,
+              size: 15,
             ),
           ),
           const SizedBox(width: 16),
